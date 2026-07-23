@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- 1. Ссылка на Server.Core (чтобы видеть IAuthService и AuthResult) -->
+		<ProjectReference Include="..\Server.Core\Server.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- 2. Пакеты для генерации и проверки JWT токенов -->
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.0" />
+	</ItemGroup>
+
+</Project>
