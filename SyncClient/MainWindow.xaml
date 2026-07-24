@@ -1,7 +1,7 @@
 ﻿<Window x:Class="SyncClient.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Sync Client" Height="450" Width="800">
+        Title="Sync Client (Manual)" Height="500" Width="800">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -25,19 +25,18 @@
             <TextBox x:Name="ApiKeyTextBox" Text="my-secret-api-key-12345" Width="200"/>
         </StackPanel>
 
-        <!-- Лог событий -->
+        <!-- Лог событий (теперь поддерживает выделение и копирование) -->
         <TextBox x:Name="LogTextBox" Grid.Row="2" Margin="0,0,0,10" 
-         IsReadOnly="True" 
-         TextWrapping="Wrap" 
-         VerticalScrollBarVisibility="Auto" 
-         FontFamily="Consolas" 
-         FontSize="12"
-         AcceptsReturn="True"/>
+                 IsReadOnly="True" 
+                 TextWrapping="Wrap" 
+                 VerticalScrollBarVisibility="Auto" 
+                 FontFamily="Consolas" 
+                 FontSize="12"
+                 AcceptsReturn="True"/>
 
-        <!-- Кнопки управления -->
+        <!-- Кнопка синхронизации -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button x:Name="StartButton" Content="Начать синхронизацию" Click="StartSync_Click" Width="150" Margin="0,0,10,0"/>
-            <Button x:Name="StopButton" Content="Остановить" Click="StopSync_Click" Width="100" IsEnabled="False"/>
+            <Button x:Name="SyncButton" Content="🔄 Синхронизировать сейчас" Click="SyncNow_Click" Width="200" Height="40" FontSize="14"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -1,0 +1,3 @@
+{
+  "apiKey": "my-secret-api-key-12345"
+}

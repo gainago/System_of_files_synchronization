@@ -8,4 +8,13 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+	<!-- 👇 ДОБАВЛЕННЫЕ ССЫЛКИ НА БИБЛИОТЕКИ КЛИЕНТА 👇 -->
+	<ItemGroup>
+		<ProjectReference Include="..\Client.Core\Client.Core.csproj" />
+		<ProjectReference Include="..\Client.FileSystem\Client.FileSystem.csproj" />
+		<ProjectReference Include="..\Client.Network\Client.Network.csproj" />
+		<ProjectReference Include="..\Client.Storage\Client.Storage.csproj" />
+	</ItemGroup>
+	<!-- 👆 КОНЕЦ БЛОКА ССЫЛОК 👆 -->
+
 </Project>

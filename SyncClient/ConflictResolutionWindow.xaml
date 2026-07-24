@@ -1,0 +1,41 @@
+﻿<Window x:Class="SyncClient.ConflictResolutionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Разрешение конфликтов синхронизации" Height="500" Width="900">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Обнаружены расхождения. Выберите действие для каждого файла:" 
+                   FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <DataGrid Grid.Row="1" x:Name="ConflictsDataGrid" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Файл" Binding="{Binding Path=Path}" Width="*"/>
+                <DataGridTextColumn Header="Статус" Binding="{Binding Path=StatusMessage}" Width="250" FontWeight="SemiBold"/>
+                <DataGridTextColumn Header="Клиент" Binding="{Binding Path=ClientDate}" Width="150"/>
+                <DataGridTextColumn Header="Сервер" Binding="{Binding Path=ServerDate}" Width="150"/>
+                <DataGridTemplateColumn Header="Действие" Width="350">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Скачать с сервера" Click="Download_Click" Margin="0,0,5,0" Width="110"/>
+                                <Button Content="Загрузить на сервер" Click="Upload_Click" Margin="0,0,5,0" Width="110"/>
+                                <Button Content="Удалить файл" Click="Delete_Click" Width="90" Background="#FFE0E0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Применить" Click="Apply_Click" Width="100" Height="30" Margin="0,0,10,0" IsDefault="True"/>
+            <Button Content="Отмена" Click="Cancel_Click" Width="100" Height="30" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
