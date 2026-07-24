@@ -73,6 +73,19 @@ public class SyncApiClient(HttpClient httpClient, string syncFolderPath) : ISync
         var response = await _httpClient.DeleteAsync(url, ct);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task DownloadFileAsAsync(string path, FileState file, string destinationPath, CancellationToken ct)
+    {
+        var url = $"/api/Files/{Uri.EscapeDataString(path)}";
+        var response = await _httpClient.GetAsync(url, ct);
+        response.EnsureSuccessStatusCode();
+
+        var directory = Path.GetDirectoryName(destinationPath);
+        if (directory != null) Directory.CreateDirectory(directory);
+
+        using var fileStream = File.Create(destinationPath);
+        await response.Content.CopyToAsync(fileStream, ct);
+    }
 }
 
 public record TransactionResponse

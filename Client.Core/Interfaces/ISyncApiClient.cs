@@ -11,6 +11,8 @@ public interface ISyncApiClient
     Task DownloadFileAsync(string path, FileState file, CancellationToken ct);
 
     Task DeleteFileAsync(string path, CancellationToken ct);
+
+    Task DownloadFileAsAsync(string path, FileState file, string destinationPath, CancellationToken ct);
 }
 
 public record SyncState

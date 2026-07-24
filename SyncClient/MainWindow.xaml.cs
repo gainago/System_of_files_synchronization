@@ -173,17 +173,29 @@ public partial class MainWindow : Window
             return;
         }
 
-        await apiClient.DownloadFileAsync(serverFile.Path, serverFile, CancellationToken.None);
-
+        // Если задано новое имя — скачиваем во временный файл, потом копируем
         if (!string.IsNullOrEmpty(newFileName))
         {
-            var oldPath = Path.Combine(folderPath, filePath);
-            File.Move(oldPath, newFileName);
-            Log($"✅ Файл {filePath} скачан и сохранен как {Path.GetFileName(newFileName)}");
+            // Скачиваем во временное место
+            var tempPath = Path.Combine(folderPath, ".sync_temp_" + Path.GetFileName(filePath));
+            var tempApi = new SyncApiClient(httpClient, folderPath);
+
+            // Временно меняем путь для скачивания
+            await apiClient.DownloadFileAsAsync(serverFile.Path, serverFile, tempPath, CancellationToken.None);
+
+            // Копируем в нужное место
+            File.Copy(tempPath, newFileName, true);
+
+            // Удаляем временный файл
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+
+            Log($"✅ Файл {filePath} скачан с сервера как {Path.GetFileName(newFileName)}");
         }
         else
         {
-            Log($"✅ Файл {filePath} скачан с сервера");
+            // Стандартное скачивание (перезапись)
+            await apiClient.DownloadFileAsync(serverFile.Path, serverFile, CancellationToken.None);
+            Log($"✅ Файл {filePath} скачан с сервера (перезаписан локально)");
         }
     }
 

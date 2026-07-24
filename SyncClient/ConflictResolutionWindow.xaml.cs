@@ -2,6 +2,8 @@
 using System.Collections.ObjectModel;
 using Client.Core.Models;
 using System.Windows.Controls;
+using Microsoft.Win32;
+using System.IO;
 
 namespace SyncClient;
 
@@ -23,7 +25,29 @@ public partial class ConflictResolutionWindow : Window
     private void Download_Click(object sender, RoutedEventArgs e)
     {
         var item = (ConflictResolutionItem)((Button)sender).DataContext;
-        item.Resolution = new ConflictResolution { FilePath = item.Path, Action = ConflictResolutionAction.DownloadFromServer };
+
+        // Открываем диалог сохранения файла
+        var dialog = new SaveFileDialog
+        {
+            Title = $"Сохранить '{item.Path}' с сервера как...",
+            FileName = Path.GetFileNameWithoutExtension(item.Path) + "_server" + Path.GetExtension(item.Path),
+            Filter = "Все файлы (*.*)|*.*",
+            InitialDirectory = Path.GetDirectoryName(item.Path) ?? ""
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            item.Resolution = new ConflictResolution
+            {
+                FilePath = item.Path,
+                Action = ConflictResolutionAction.DownloadFromServer,
+                NewFileName = dialog.FileName  // <-- Сохраняем выбранный путь
+            };
+
+            // Визуальная обратная связь
+            ((Button)sender).Content = $"✓ Сохранить как {Path.GetFileName(dialog.FileName)}";
+            ((Button)sender).IsEnabled = false;
+        }
     }
 
     private void Upload_Click(object sender, RoutedEventArgs e)
@@ -77,6 +101,7 @@ public class ConflictResolution
 {
     public string FilePath { get; set; } = string.Empty;
     public ConflictResolutionAction Action { get; set; }
+    public string? NewFileName { get; set; }
 }
 
 public enum ConflictResolutionAction
