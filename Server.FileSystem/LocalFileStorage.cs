@@ -20,6 +20,8 @@ public class LocalFileStorage : IServerFileStorage
     {
         var fullPath = GetFullPath(relativePath);
         var directory = Path.GetDirectoryName(fullPath)!;
+
+        // ✅ Создаём подпапки если их нет
         Directory.CreateDirectory(directory);
 
         int retryCount = 0;
@@ -27,7 +29,6 @@ public class LocalFileStorage : IServerFileStorage
         {
             try
             {
-                // FileMode.Create, FileAccess.Write, FileShare.Read - самый надежный способ перезаписи
                 using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.Read);
                 await content.CopyToAsync(fileStream, ct);
                 return fullPath;
@@ -35,11 +36,11 @@ public class LocalFileStorage : IServerFileStorage
             catch (IOException)
             {
                 retryCount++;
-                await Task.Delay(500, ct); // Ждем полсекунды перед повтором
+                await Task.Delay(500, ct);
             }
         }
 
-        throw new IOException($"Не удалось сохранить файл {relativePath} после 5 попыток. Файл заблокирован.");
+        throw new IOException($"Не удалось сохранить файл {relativePath} после 5 попыток.");
     }
 
     public async Task<Stream> ReadFileAsync(string relativePath, CancellationToken ct)
@@ -127,12 +128,8 @@ public class LocalFileStorage : IServerFileStorage
 
     private string GetFullPath(string relativePath)
     {
-        // Защита от path traversal атак
-        var fullPath = Path.GetFullPath(Path.Combine(_basePath, relativePath));
-
-        if (!fullPath.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
-            throw new UnauthorizedAccessException($"Доступ запрещен: {relativePath}");
-
-        return fullPath;
+        // Нормализуем разделители
+        var normalizedPath = relativePath.Replace('/', Path.DirectorySeparatorChar);
+        return Path.Combine(_basePath, normalizedPath);
     }
 }

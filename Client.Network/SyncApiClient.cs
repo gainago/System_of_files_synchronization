@@ -10,6 +10,14 @@ public class SyncApiClient(HttpClient httpClient, string syncFolderPath) : ISync
     private readonly HttpClient _httpClient = httpClient;
     private readonly string _syncFolderPath = syncFolderPath;
 
+    /// <summary>
+    /// Кодирует путь, сохраняя / как разделитель папок
+    /// </summary>
+    private static string EncodePath(string path)
+    {
+        return string.Join("/", path.Split('/').Select(Uri.EscapeDataString));
+    }
+
     public async Task<SyncState> GetServerStateAsync(CancellationToken ct)
     {
         var response = await _httpClient.GetAsync("/api/Files/state", ct);
@@ -48,14 +56,16 @@ public class SyncApiClient(HttpClient httpClient, string syncFolderPath) : ISync
         using var content = new MultipartFormDataContent();
         content.Add(new StreamContent(fileStream), "file", Path.GetFileName(fullPath));
 
-        var url = $"/api/Files/{Uri.EscapeDataString(path)}?hash={file.Hash}";
+        // ✅ ИСПРАВЛЕНО: используем EncodePath вместо Uri.EscapeDataString
+        var url = $"/api/Files/{EncodePath(path)}?hash={file.Hash}";
         var response = await _httpClient.PutAsync(url, content, ct);
         response.EnsureSuccessStatusCode();
     }
 
     public async Task DownloadFileAsync(string path, FileState file, CancellationToken ct)
     {
-        var url = $"/api/Files/{Uri.EscapeDataString(path)}";
+        // ✅ ИСПРАВЛЕНО: используем EncodePath
+        var url = $"/api/Files/{EncodePath(path)}";
         var response = await _httpClient.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
 
@@ -67,16 +77,10 @@ public class SyncApiClient(HttpClient httpClient, string syncFolderPath) : ISync
         await response.Content.CopyToAsync(fileStream, ct);
     }
 
-    public async Task DeleteFileAsync(string path, CancellationToken ct)
-    {
-        var url = $"/api/Files/{Uri.EscapeDataString(path)}";
-        var response = await _httpClient.DeleteAsync(url, ct);
-        response.EnsureSuccessStatusCode();
-    }
-
     public async Task DownloadFileAsAsync(string path, FileState file, string destinationPath, CancellationToken ct)
     {
-        var url = $"/api/Files/{Uri.EscapeDataString(path)}";
+        // ✅ ИСПРАВЛЕНО: используем EncodePath
+        var url = $"/api/Files/{EncodePath(path)}";
         var response = await _httpClient.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
 
@@ -85,6 +89,14 @@ public class SyncApiClient(HttpClient httpClient, string syncFolderPath) : ISync
 
         using var fileStream = File.Create(destinationPath);
         await response.Content.CopyToAsync(fileStream, ct);
+    }
+
+    public async Task DeleteFileAsync(string path, CancellationToken ct)
+    {
+        // ✅ ИСПРАВЛЕНО: используем EncodePath
+        var url = $"/api/Files/{EncodePath(path)}";
+        var response = await _httpClient.DeleteAsync(url, ct);
+        response.EnsureSuccessStatusCode();
     }
 }
 

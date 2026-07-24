@@ -163,39 +163,40 @@ public partial class MainWindow : Window
 
     private async Task DownloadFromServer(string filePath, string? newFileName, string folderPath, HttpClient httpClient)
     {
-        var apiClient = new SyncApiClient(httpClient, folderPath);
-        var serverState = await apiClient.GetServerStateAsync(CancellationToken.None);
-        var serverFile = serverState.Files.FirstOrDefault(f => f.Path == filePath);
-
-        if (serverFile == null)
+        try
         {
-            Log($"❌ Файл {filePath} не найден на сервере");
-            return;
+            var apiClient = new SyncApiClient(httpClient, folderPath);
+            var serverState = await apiClient.GetServerStateAsync(CancellationToken.None);
+            var serverFile = serverState.Files.FirstOrDefault(f => f.Path == filePath);
+
+            if (serverFile == null)
+            {
+                Log($"❌ Файл {filePath} не найден на сервере");
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(newFileName))
+            {
+                // Скачиваем по выбранному пользователем пути
+                var directory = Path.GetDirectoryName(newFileName);
+                if (directory != null && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                await apiClient.DownloadFileAsAsync(serverFile.Path, serverFile, newFileName, CancellationToken.None);
+                Log($"✅ Файл {filePath} скачан с сервера как {Path.GetFileName(newFileName)}");
+            }
+            else
+            {
+                // Стандартное скачивание (перезапись локального файла)
+                await apiClient.DownloadFileAsync(serverFile.Path, serverFile, CancellationToken.None);
+                Log($"✅ Файл {filePath} скачан с сервера");
+            }
         }
-
-        // Если задано новое имя — скачиваем во временный файл, потом копируем
-        if (!string.IsNullOrEmpty(newFileName))
+        catch (Exception ex)
         {
-            // Скачиваем во временное место
-            var tempPath = Path.Combine(folderPath, ".sync_temp_" + Path.GetFileName(filePath));
-            var tempApi = new SyncApiClient(httpClient, folderPath);
-
-            // Временно меняем путь для скачивания
-            await apiClient.DownloadFileAsAsync(serverFile.Path, serverFile, tempPath, CancellationToken.None);
-
-            // Копируем в нужное место
-            File.Copy(tempPath, newFileName, true);
-
-            // Удаляем временный файл
-            if (File.Exists(tempPath)) File.Delete(tempPath);
-
-            Log($"✅ Файл {filePath} скачан с сервера как {Path.GetFileName(newFileName)}");
-        }
-        else
-        {
-            // Стандартное скачивание (перезапись)
-            await apiClient.DownloadFileAsync(serverFile.Path, serverFile, CancellationToken.None);
-            Log($"✅ Файл {filePath} скачан с сервера (перезаписан локально)");
+            Log($"❌ Ошибка скачивания {filePath}: {ex.Message}");
         }
     }
 

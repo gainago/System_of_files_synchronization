@@ -26,13 +26,15 @@ public partial class ConflictResolutionWindow : Window
     {
         var item = (ConflictResolutionItem)((Button)sender).DataContext;
 
-        // Открываем диалог сохранения файла
+        // Предлагаем имя файла с суффиксом _server
+        var suggestedName = Path.GetFileNameWithoutExtension(item.Path) + "_server" + Path.GetExtension(item.Path);
+
         var dialog = new SaveFileDialog
         {
             Title = $"Сохранить '{item.Path}' с сервера как...",
-            FileName = Path.GetFileNameWithoutExtension(item.Path) + "_server" + Path.GetExtension(item.Path),
+            FileName = suggestedName,
             Filter = "Все файлы (*.*)|*.*",
-            InitialDirectory = Path.GetDirectoryName(item.Path) ?? ""
+            // Не указываем InitialDirectory, чтобы пользователь мог выбрать любую папку
         };
 
         if (dialog.ShowDialog() == true)
@@ -41,11 +43,11 @@ public partial class ConflictResolutionWindow : Window
             {
                 FilePath = item.Path,
                 Action = ConflictResolutionAction.DownloadFromServer,
-                NewFileName = dialog.FileName  // <-- Сохраняем выбранный путь
+                NewFileName = dialog.FileName
             };
 
             // Визуальная обратная связь
-            ((Button)sender).Content = $"✓ Сохранить как {Path.GetFileName(dialog.FileName)}";
+            ((Button)sender).Content = $"✓ {Path.GetFileName(dialog.FileName)}";
             ((Button)sender).IsEnabled = false;
         }
     }

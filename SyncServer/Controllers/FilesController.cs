@@ -17,6 +17,14 @@ public class FilesController : ControllerBase
         _fileService = fileService;
     }
 
+    /// <summary>
+    /// Декодирует путь, сохраняя / как разделитель папок
+    /// </summary>
+    private static string DecodePath(string path)
+    {
+        return string.Join("/", path.Split('/').Select(Uri.UnescapeDataString));
+    }
+
     [HttpGet("state")]
     public async Task<ActionResult<SyncState>> GetSyncState(CancellationToken ct)
     {
@@ -27,28 +35,37 @@ public class FilesController : ControllerBase
     [HttpPut("{*path}")]
     public async Task<IActionResult> UploadFile(string path, [FromQuery] string hash, IFormFile file, CancellationToken ct)
     {
-        if (file == null || file.Length == 0)
+        if (file == null)
         {
-            return BadRequest("Файл не выбран или пуст");
+            return BadRequest(new { error = "Файл не выбран" });
         }
 
-        using var stream = file.OpenReadStream();
-        await _fileService.UploadFileAsync(path, stream, hash, ct);
+        // ✅ ИСПРАВЛЕНО: декодируем путь
+        var decodedPath = DecodePath(path);
 
-        return Ok(new { message = "Файл загружен", path, size = file.Length });
+        using var stream = file.OpenReadStream();
+        await _fileService.UploadFileAsync(decodedPath, stream, hash, ct);
+
+        return Ok(new { message = "Файл загружен", path = decodedPath, size = file.Length });
     }
 
     [HttpGet("{*path}")]
     public async Task<IActionResult> DownloadFile(string path, CancellationToken ct)
     {
-        var stream = await _fileService.DownloadFileAsync(path, ct);
-        return File(stream, "application/octet-stream", Path.GetFileName(path));
+        // ✅ ИСПРАВЛЕНО: декодируем путь
+        var decodedPath = DecodePath(path);
+
+        var stream = await _fileService.DownloadFileAsync(decodedPath, ct);
+        return File(stream, "application/octet-stream", Path.GetFileName(decodedPath));
     }
 
     [HttpDelete("{*path}")]
     public async Task<IActionResult> DeleteFile(string path, CancellationToken ct)
     {
-        await _fileService.DeleteFileAsync(path, ct);
+        // ✅ ИСПРАВЛЕНО: декодируем путь
+        var decodedPath = DecodePath(path);
+
+        await _fileService.DeleteFileAsync(decodedPath, ct);
         return Ok();
     }
 }
